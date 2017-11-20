@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE qform PUBLIC "-//Q//DTD QForm 2.3 Transitional//RU" "qform.dtd">
+<qform debug="1">
+<!--DEFINE:
+point_id      0       /*  */
+embeded       0       /*  */
+-->
+	<database>
+		<table name="control_points_results"/>
+		<key name="id" type="integer" />
+	</database>
+	<list >
+		<text>
+			<windowtitle>Результаты</windowtitle>
+			<title>Список результатов измерений</title>
+			<before>Используется в демонстрационных и обучающих целях.</before>
+			<after></after>
+			<help key="control_points_results" />
+		</text>
+		<sql key="id">
+		<!-- ВСЕГДА ВСТАВЛЯТЬ КОНСТРУКЦИЮ CDATA-->
+		<![CDATA[
+				SELECT
+					control_points_results.id,
+					control_points.name as point_name,
+					control_points_results.date_mesure,
+					control_points_results.result
+					FROM control_points_results
+				LEFT JOIN control_points ON (control_points_results.point_id=control_points.id)
+				WHERE 1 AND !control_points_results.deleted
+				<!-- if({{point_id}}!=0){ -->
+					AND control_points_results.point_id = '{{point_id}}'
+				<!-- } -->
+				ORDER BY 1
+		]]>
+		</sql>
+
+			<cols defaultsort="result">
+				<!-- if({{point_id}}=0){ -->
+					<col field="point_name" caption="Название котрольной точки" align="left" sqlrepr="control_points.name"/>
+					<!-- } -->
+					<col field="date_mesure" caption="Дата измерения" type="datetime" align="left"/>
+					<col field="result" caption="Результат" align="left"/>
+		</cols>
+		<filters>
+				<filter name="point_id" caption="Название котрольной точки" type="dropdown" default="" extended="1">
+					<sqlrepr>
+						<!-- if({{(int)filter.point_id}}) { -->
+						control_points_results.point_id = '{{filter.point_id}}'
+						<!-- } -->
+					</sqlrepr>
+					<choice key="">Все</choice>
+
+					<choice key="point_id" field="point_name" >
+						<sql>
+							<![CDATA[
+								SELECT DISTINCT
+									control_points_results.point_id,
+									control_points.name as point_name
+								FROM control_points_results
+								LEFT JOIN control_points ON (control_points_results.point_id = control_points.id)
+								WHERE  !control_points_results.deleted
+							]]>
+						</sql>
+					</choice>
+			</filter>
+		</filters>
+	</list>
+	<form>
+		<text>
+			<windowtitle>Контрольная точка</windowtitle>
+			<title>Карточка контрольной точки</title>
+			<before></before>
+
+			<after></after>
+			<help key="control_points" />
+		</text>
+		<tab name="main" caption="Основная">
+			<elements>
+				<text>
+					Внимание! При заполнении данной информации необходимо собраться с мыслями.
+				</text>
+
+				<field name="point_id" prompt="Контрольная точка" type="dropdown" default="{{point_id}}" readonly="{{point_id}}">
+					<choice key="">-</choice>
+					<choice key="id" field="name">
+						<sql>
+							<![CDATA[
+								SELECT id,name
+								FROM control_points
+								WHERE !control_points.deleted
+							]]>
+						</sql>
+					</choice>
+				</field>
+				<field name="date_mesure"  prompt="Дата измерения" type="datetime" continue="1" interval-next="small"/>
+				<field name="result"  prompt="Результат" type="int" size="12" prompt-size="9"/>
+		</elements>
+<!-- 		<finishsql on="delete|store">
+			<![CDATA[
+
+			]]>
+		</finishsql> -->
+	</tab>
+	</form>
+</qform>
+
+

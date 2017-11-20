@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE qform PUBLIC "-//Q//DTD QForm 2.3 Transitional//RU" "qform.dtd">
+<qform debug="1">
+  <database>
+    <table name="control_points"/>
+    <key name="id" type="integer" />
+  </database>
+  <list >
+    <text>
+      <windowtitle>Контрольные точки</windowtitle>
+      <title>Список контрольных точек</title>
+      <before>Используется в демонстрационных и обучающих целях.</before>
+      <after></after>
+      <!-- <help key="control_points" /> -->
+    </text>
+    <sql key="id">
+    <!-- ВСЕГДА ВСТАВЛЯТЬ КОНСТРУКЦИЮ CDATA-->
+    <![CDATA[
+        SELECT
+          control_points.id,
+          control_points.name,
+          control_points.type_measures,
+          control_points.unit,
+          control_points_results.id AS res_id,
+          CONCAT(persons.lastname,' ',persons.firstname,' ', COALESCE(persons.middlename,'')) as fio,
+          departments.shortname,
+          /*COALESCE(DATE_FORMAT(MAX(date_mesure), '%d.%m.%Y %H:%i'), '&mdash;') as date_m*/
+          MAX(date_mesure) as date_m
+
+        FROM control_points
+        LEFT JOIN control_points_results ON (control_points_results.point_id = control_points.id)
+        LEFT JOIN persons ON (persons.id = control_points.pid)
+        LEFT JOIN departments ON (departments.id = control_points.did)
+        WHERE 1 AND !control_points.deleted
+        GROUP BY control_points.id
+        ORDER BY 1
+    ]]>
+    <!--     ДЛЯ РАБОТЫ СОРТИРОВКИ И ФИЛЬТРА НУЖНО УКАЗЫВАТЬ
+    ORDER BY 1 И WHERE 1 AND ![ОСНОВНАЯ_ТАБЛИЦА].deleted
+    ВМЕСТО 1 ДВИЖОК БУДЕТ ПОСТАВЛЯТЬ ПОЛЕ ПО КОТОРОМУ БУДЕТ ФИЛЬТРОВАТЬСЯ ТАБЛИЦА -->
+    </sql>
+   <!-- ОБЯЗАТЕЛЬНО УКАЗЫВАТЬ АТРИБУТ defaultsort -->
+   <!-- sqlrepr ИСПОЛЬЗУЕТСЯ ТОЛЬКО В СЛУЧАЕ ОБРАЩЕНИЯ К ДОПОЛНИТЕЛЬНОЙ ТАБЛИЦЕ -->
+    <cols defaultsort="fio">
+      <col field="name" caption="Название котрольной точки" align="left"/>
+      <col field="type_measures" caption="Тип измерения" align="left"/>
+      <col field="unit" caption="Единица измерения" align="left"/>
+      <!-- В sqlrepr ИСКОМЫЕ ПОЛЯ МОЖНО УКАЗЫВАТЬ ЧЕРЕЗ ИЛИ -->
+      <col field="fio" caption="ФИО ответственного лица" align="left" sqlrepr="persons.lastname|persons.firstname|persons.middlename"/>
+      <col field="shortname"  sqlrepr="departments.shortname" caption="Подразделение" align="left" />
+      <!-- allowhtml ПЕРЕСТАЕТ ЭКРАНИРОВАТЬ МНЕМОНИКУ -->
+      <!-- <col field="date_m"  caption="Дата последнего измерения" type="text" sqlrepr="MAX(date_mesure)" allowhtml="1" align="center"/> -->
+      <col name="date_m"  caption="Дата последнего измерения" type="datetime"
+        link-entity="foobar2"
+        link-entity-id="{{row.res_id}}"
+        link-form-edit="0"
+        link-form-externvars="point_id:'{{row.id}}'"
+      />
+    </cols>
+    <filters>
+      <!-- extended="1" ДОБАВЛЯЕТ ПОИСК ПО СПИСКУ -->
+      <filter name="pid" caption="ФИО ответственного" type="dropdown" default="" extended="1">
+          <sqlrepr>
+            <!-- if({{(int)filter.pid}}) { -->
+            control_points.pid = '{{filter.pid}}'
+            <!-- } -->
+          </sqlrepr>
+          <choice key="">Все</choice>
+
+          <choice key="pid" field="fio" infofield="position">
+            <sql>
+              <![CDATA[
+                SELECT DISTINCT control_points.pid
+                  , CONCAT(persons.lastname,' ',persons.firstname,' ', COALESCE(persons.middlename,'')) as fio
+                  , persons.position
+                FROM    control_points
+                LEFT JOIN persons ON persons.id = control_points.pid
+                WHERE  !control_points.deleted
+              ]]>
+            </sql>
+          </choice>
+      </filter>
+      <filter field="type_measures" caption="Тип измерения" type="dropdown"  default="" extended="1">
+          <choice key="">Все</choice>
+
+          <choice key="type_measures" field="type_measures">
+            <sql>
+              <![CDATA[
+                SELECT distinct control_points.type_measures
+                FROM    control_points
+                WHERE  !control_points.deleted
+              ]]>
+            </sql>
+          </choice>
+      </filter>
+    </filters>
+  </list>
+  <form>
+    <text>
+      <windowtitle>Контрольная точка</windowtitle>
+      <title>Карточка контрольной точки</title>
+      <before></before>
+
+      <after></after>
+      <help key="control_points" />
+    </text>
+    <tab name="main" caption="Основная">
+      <elements>
+        <text>
+          Внимание! При заполнении данной информации необходимо собраться с мыслями.
+        </text>
+
+        <include src="includes/field_person_selector.inc"
+        />
+        <field name="name"  prompt="Название котрольной точки" type="text"     />
+        <field name="type_measures"  prompt="Тип измерения" type="text"     />
+        <field name="unit"  prompt="Единица измерения" type="combobox" continue="1"     >
+          <include src="includes/choice_suggest_self.inc" table="control_points" field="unit" />
+        </field>
+
+    </elements>
+  </tab>
+  <tab name="mesuares" caption="Измерения">
+
+      <elements>
+          <list src="foobar2">
+            <param name="point_id">{{id}}</param>
+            <param name="embeded">1</param>
+          </list>
+      </elements>
+    </tab>
+  </form>
+</qform>
+
+
