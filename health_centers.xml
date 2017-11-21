@@ -16,6 +16,7 @@
     <sql key="id">
     <![CDATA[
         SELECT
+          id,
           name_company,
           adress,
           pid,
