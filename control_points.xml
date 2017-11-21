@@ -21,10 +21,10 @@
           control_points.name,
           control_points.type_measures,
           control_points.unit,
+          control_points.did,
           control_points_results.id AS res_id,
           CONCAT(persons.lastname,' ',persons.firstname,' ', COALESCE(persons.middlename,'')) as fio,
           departments.shortname,
-          /*COALESCE(DATE_FORMAT(MAX(date_mesure), '%d.%m.%Y %H:%i'), '&mdash;') as date_m*/
           MAX(date_mesure) as date_m
 
         FROM control_points
@@ -57,6 +57,8 @@
         link-form-externvars="point_id:'{{row.id}}'"
       />
     </cols>
+
+    <!-- НАЧАЛО ФИЛЬТРАЦИИ -->
     <filters>
       <!-- extended="1" ДОБАВЛЯЕТ ПОИСК ПО СПИСКУ -->
       <filter name="pid" caption="ФИО ответственного" type="dropdown" default="" extended="1">
@@ -93,7 +95,11 @@
             </sql>
           </choice>
       </filter>
+
+
+
     </filters>
+   <!-- КОНЕЦ ФИЛЬТРАЦИИ  -->
   </list>
   <form>
     <text>
@@ -102,7 +108,7 @@
       <before></before>
 
       <after></after>
-      <help key="control_points" />
+      <!-- <help key="control_points" /> -->
     </text>
     <tab name="main" caption="Основная">
       <elements>
@@ -110,12 +116,16 @@
           Внимание! При заполнении данной информации необходимо собраться с мыслями.
         </text>
 
-        <include src="includes/field_person_selector.inc"
-        />
+
+        <include src="includes/field_deppath.inc" field="did" updatename2="pid"/>
+        <include src="includes/person_selector.inc" prompt="ФИО ответственного" nodeid="{{field.did}}" company_id="{{field.company_id}}" condition-field="did" condition-value="0" condition-comparison="NE"/>
         <field name="name"  prompt="Название котрольной точки" type="text"     />
         <field name="type_measures"  prompt="Тип измерения" type="text"     />
         <field name="unit"  prompt="Единица измерения" type="combobox" continue="1"     >
-          <include src="includes/choice_suggest_self.inc" table="control_points" field="unit" />
+        <field name="type_measures"  prompt="Тип измерения" type="text"     />
+        <field name="did"  prompt="Департамент" type="text"     />
+        <!-- СЮДА ДОБАВИТЬ ВЫБОР ДЕПАРТАМЕНТА, ОТ КОТОРОГО БУДЕТ ЗАВИСЕТЬ ВЫБОРКА ПЕРСОН -->
+        <include src="includes/choice_suggest_self.inc" table="control_points" field="unit" />
         </field>
 
     </elements>

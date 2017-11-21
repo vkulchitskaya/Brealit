@@ -55,8 +55,8 @@ embeded       0       /*  */
 						<sql>
 							<![CDATA[
 								SELECT DISTINCT
-									control_points_results.point_id,
-									control_points.name as point_name
+								control_points_results.point_id,
+								control_points.name as point_name
 								FROM control_points_results
 								LEFT JOIN control_points ON (control_points_results.point_id = control_points.id)
 								WHERE  !control_points_results.deleted
@@ -96,11 +96,31 @@ embeded       0       /*  */
 				<field name="date_mesure"  prompt="Дата измерения" type="datetime" continue="1" interval-next="small"/>
 				<field name="result"  prompt="Результат" type="int" size="12" prompt-size="9"/>
 		</elements>
-<!-- 		<finishsql on="delete|store">
-			<![CDATA[
 
+		<!--
+		1) ОБНУЛЯЕМ is_last ВСЕХ ЗАПИСЕЙ ИЗМЕРЕНИЙ, ОТНОСЯЩИЕСЯ К ТЕКУЩЕЙ ТОЧКЕ
+		2) ВНУТРИ CDATA ОБРАЩАТЬСЯ К ПОЛЯМ ЧЕРЕЗ DATA.
+		3) ЗАПИСЫВАЕМ В ПЕРЕМЕННУЮ @temp САМУЮ ПОЗДНЮЮ ДАТУ ИЗМЕРЕНИЯ ДЛЯ УКАЗАННОЙ ТОЧКИ
+		4) ПРОСТАВЛЯЕМ is_last=1 ДЛЯ УКАЗАННОЙ ТОЧКИ С ДАТОЙ=@temp  -->
+
+		<finishsql on="delete|store">
+			<![CDATA[
+				UPDATE control_points_results
+               SET is_last=0
+               WHERE point_id='{{data.point_id}}';
+
+			   SELECT MAX(date_mesure) INTO @temp
+               FROM control_points_results
+               WHERE point_id='{{data.point_id}}'
+               AND !deleted;
+
+				UPDATE control_points_results
+               SET is_last=1
+               WHERE point_id='{{data.point_id}}'
+               AND !deleted
+               AND date_mesure = @temp;
 			]]>
-		</finishsql> -->
+		</finishsql>
 	</tab>
 	</form>
 </qform>
