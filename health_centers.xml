@@ -48,9 +48,8 @@
       <elements>
         <field name="name_company"  prompt="Название компании" type="text"     />
         <field name="adress"  prompt="Адрес" type="text"     />
-        <field name="pid"  prompt="Код врача" type="combobox" continue="1"     >
+        <field name="pid"  prompt="Код врача" type="combobox" continue="1"     />
         <field name="comment"  prompt="Примечание" type="text"     />
-        </field>
     </elements>
 
   </form>
