@@ -49,7 +49,6 @@
       <col field="fio" caption="ФИО ответственного лица" align="left" sqlrepr="persons.lastname|persons.firstname|persons.middlename"/>
       <col field="shortname"  sqlrepr="departments.shortname" caption="Подразделение" align="left" />
       <!-- allowhtml ПЕРЕСТАЕТ ЭКРАНИРОВАТЬ МНЕМОНИКУ -->
-      <!-- <col field="date_m"  caption="Дата последнего измерения" type="text" sqlrepr="MAX(date_mesure)" allowhtml="1" align="center"/> -->
       <col name="date_m"  caption="Дата последнего измерения" type="datetime"
         link-entity="foobar2"
         link-entity-id="{{row.res_id}}"
@@ -95,9 +94,6 @@
             </sql>
           </choice>
       </filter>
-
-
-
     </filters>
    <!-- КОНЕЦ ФИЛЬТРАЦИИ  -->
   </list>
@@ -116,15 +112,21 @@
           Внимание! При заполнении данной информации необходимо собраться с мыслями.
         </text>
 
+         <!--
+         1) ПОДКЛЮЧАЮ include ДЛЯ ВЫБОРА ДЕПАРТАМЕНТА
+         2) ВЫБОР ДЕПАРТАМЕНТА ОГРАНИЧИВАЕТ ВЫБОР ПОДРАЗДЕЛЕНИЯ И СОТРУДНИКА
+         3) НЕ ПОНЯТНО, КАК РЕАЛИЗОВАНО ОГРАНИЧЕНИЕ ВЫБОРА
+         4) ЧТО ТАКОЕ  updatename2="pid" nodeid="{{field.did}}" company_id="{{field.company_id}}" condition-field="did" condition-value="0" condition-comparison="NE" -->
 
         <include src="includes/field_deppath.inc" field="did" updatename2="pid"/>
         <include src="includes/person_selector.inc" prompt="ФИО ответственного" nodeid="{{field.did}}" company_id="{{field.company_id}}" condition-field="did" condition-value="0" condition-comparison="NE"/>
+
         <field name="name"  prompt="Название котрольной точки" type="text"     />
         <field name="type_measures"  prompt="Тип измерения" type="text"     />
         <field name="unit"  prompt="Единица измерения" type="combobox" continue="1"     >
         <field name="type_measures"  prompt="Тип измерения" type="text"     />
         <field name="did"  prompt="Департамент" type="text"     />
-        <!-- СЮДА ДОБАВИТЬ ВЫБОР ДЕПАРТАМЕНТА, ОТ КОТОРОГО БУДЕТ ЗАВИСЕТЬ ВЫБОРКА ПЕРСОН -->
+        <!-- ЧТО ЭТО ЗА  include-->
         <include src="includes/choice_suggest_self.inc" table="control_points" field="unit" />
         </field>
 
@@ -133,7 +135,7 @@
   <tab name="mesuares" caption="Измерения">
 
       <elements>
-          <list src="foobar2">
+          <list src="control_points_results">
             <param name="point_id">{{id}}</param>
             <param name="embeded">1</param>
           </list>
